@@ -1,0 +1,46 @@
+{
+  "name": "node-image-processing",
+  "version": "0.0.1",
+  "description": "Node Image Processing",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "author": "mail@nicomartin.ch",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nico-martin/node-image-processing.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "prod": "ts-node ./app/index.ts -T"
+  },
+  "dependencies": {
+    "esm": "^3.2.25",
+    "http": "^0.0.1-security",
+    "node-static": "^0.7.11",
+    "ts-node": "^8.10.2",
+    "ts-node-dev": "^1.0.0-pre.44"
+  },
+  "devDependencies": {
+    "@types/node": "^13.9.3",
+    "@types/node-fetch": "^2.5.7",
+    "@types/node-static": "^0.7.5",
+    "@typescript-eslint/eslint-plugin": "^2.25.0",
+    "@typescript-eslint/parser": "^2.25.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^1.19.1",
+    "typescript": "^3.8.3"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "bugs": {
+    "url": "https://github.com/nico-martin/node-image-processing/issues"
+  },
+  "homepage": "https://github.com/nico-martin/node-image-processing#readme"
+}
