@@ -6,4 +6,4 @@ lib
 yarn-error.log
 **/yarn-error.log
 ./server.config.js
-./images/
+images/
