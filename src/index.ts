@@ -18,30 +18,95 @@ const handle = async ({
   request: http.IncomingMessage;
   response: http.ServerResponse;
 }): Promise<void> => {
-  // will be called if the static file does not (yet) exists.
-  //
-  // About
-  // Image URL: https://img-host.com/my/path/test.jpg
-  // URL Scheme: https://img-service.com/size-{org|200x200|0x200|200x0}/filter-grayscale-50,blur-50/my/path/test.jpg
   try {
     if (request.url === '/favicon.ico') {
       return404(response);
       return;
     }
-    const url = IMG_HOST + request.url;
-    const imageRequest = await fetch(url);
+
+    const resize = { width: 0, height: 0 };
+    const transform: { [key: string]: string | number } = {};
+    const transformFunctions = {
+      /* Flip and rotate */
+
+      flip: (value: string) => [
+        value.indexOf('h') !== -1,
+        value.indexOf('v') !== -1,
+      ],
+      rotate: (value: string) => [parseInt(value)],
+
+      /* Colour */
+
+      brightness: (value: string) => [parseInt(value) / 100],
+      contrast: (value: string) => [parseInt(value) / 100],
+      dither565: () => [],
+      grayscale: () => [],
+      invert: () => [],
+
+      /* Blur */
+
+      blur: (value: string) => [parseInt(value)],
+      gaussian: (value: string) => [parseInt(value)],
+
+      /* Quality */
+
+      quality: (value: string) => [parseInt(value)],
+    };
+
+    /**
+     * Parse URL
+     */
+
+    const requestUrl = request.url;
+    let urlParams = requestUrl ? requestUrl.split('/') : [];
+    urlParams = urlParams.filter(param => {
+      if (param.startsWith('size-')) {
+        const sizes = param.replace('size-', '').split('x');
+        resize.width = parseInt(sizes[0]);
+        resize.height = parseInt(sizes[1]);
+        return false;
+      } else if (param.startsWith('transform')) {
+        param
+          .replace('transform', '')
+          .replace(/\]$/, '')
+          .replace(/^\[/, '')
+          .split('][')
+          .map(string => {
+            const [functionString, value] = string.split(',');
+            if (functionString in transformFunctions) {
+              // @ts-ignore
+              transform[functionString] = transformFunctions[functionString](
+                value
+              );
+            }
+          });
+        return false;
+      }
+      return true;
+    });
+
+    const imgUrl = IMG_HOST + urlParams.join('/');
+    const imageRequest = await fetch(imgUrl);
     if (!imageRequest.ok) {
       return404(response, 'Image not found');
       return;
     }
 
     Jimp.read(await imageRequest.buffer()).then(async image => {
-      // size- has to be calculated: filst crop, then resize
-      image.crop(500, 500, 500, 500);
-      image.resize(100, 100);
-      //image.grayscale();
-      //image.gaussian(15);
-      //image.write(IMAGES_FOLDER + request.url);
+      if (resize.width !== 0 || resize.height != 0) {
+        if (resize.width !== 0 && resize.height != 0) {
+          image.cover(resize.width, resize.height);
+        } else {
+          image.resize(resize.width || Jimp.AUTO, resize.height || Jimp.AUTO);
+        }
+      }
+
+      Object.entries(transform).map(([func, values]) => {
+        // @ts-ignore
+        image[func](...values);
+      });
+
+      image.write(IMAGES_FOLDER + requestUrl);
       const mimeType = image.getMIME();
       const buffer = await image.getBufferAsync(mimeType);
 
@@ -54,6 +119,7 @@ const handle = async ({
       response.end();
     });
   } catch (err) {
+    console.log(err);
     return500(response);
     return;
   }
