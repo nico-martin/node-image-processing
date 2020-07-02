@@ -7,7 +7,7 @@ import { server, return404, return500 } from './server';
 import fetch from 'node-fetch';
 import { untrailingSlashIt } from './helpers';
 
-const PORT = process.env.PORT || 8012;
+const PORT = process.env.PORT || 8080;
 const IMAGES_FOLDER = process.env.IMAGES_FOLDER || './images';
 const IMG_HOST = untrailingSlashIt('https://skateparkguide.ch');
 

@@ -13,7 +13,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
-    "prod": "ts-node ./app/index.ts -T"
+    "prod": "ts-node ./src/index.ts -T"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
