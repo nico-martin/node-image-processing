@@ -51,6 +51,10 @@ const handle = async ({
       /* Quality */
 
       quality: (value: string) => [parseInt(value)],
+
+      /* Effects */
+
+      sepia: () => [],
     };
 
     /**
