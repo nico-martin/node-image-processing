@@ -3,13 +3,14 @@ import 'dotenv/config';
 import fs from 'fs';
 import http from 'http';
 import Jimp from 'jimp';
-import { server, return404, return500 } from './server';
+import { server, return404, return500, return400 } from './server';
 import fetch from 'node-fetch';
 import { untrailingSlashIt } from './helpers';
 
 const PORT = process.env.PORT || 8080;
 const IMAGES_FOLDER = process.env.IMAGES_FOLDER || './images';
-const IMG_HOST = untrailingSlashIt('https://skateparkguide.ch');
+const IMG_HOST = untrailingSlashIt(process.env.IMG_HOST || '');
+const MAX_SIZES = process.env.MAX_SIZE || 5000;
 
 const handle = async ({
   request,
@@ -68,6 +69,12 @@ const handle = async ({
         const sizes = param.replace('size-', '').split('x');
         resize.width = parseInt(sizes[0]);
         resize.height = parseInt(sizes[1]);
+        if (resize.width >= MAX_SIZES) {
+          return400(response, `Width can't be bigger than ${MAX_SIZES}`);
+        }
+        if (resize.height >= MAX_SIZES) {
+          return400(response, `Height can't be bigger than ${MAX_SIZES}`);
+        }
         return false;
       } else if (param.startsWith('transform')) {
         param
@@ -124,12 +131,16 @@ const handle = async ({
     });
   } catch (err) {
     console.log(err);
-    return500(response);
+    return500(response, `Internal server error: "${err.toString()}"`);
     return;
   }
 };
 
-server(IMAGES_FOLDER, handle).listen(PORT, () => {
-  console.log(`Running on Port ${PORT}`);
-  console.log(`http://localhost:${PORT}/`);
-});
+if (IMG_HOST === '') {
+  console.log('ERROR: image host (process.env.IMG_HOST) not specified.');
+} else {
+  server(IMAGES_FOLDER, handle).listen(PORT, () => {
+    console.log(`Running on Port ${PORT}`);
+    console.log(`http://localhost:${PORT}/`);
+  });
+}
