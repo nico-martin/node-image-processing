@@ -5,12 +5,22 @@ import http from 'http';
 import Jimp from 'jimp';
 import { server, return404, return500, return400 } from './server';
 import fetch from 'node-fetch';
-import { untrailingSlashIt } from './helpers';
+import { untrailingSlashIt, logLevels, log } from './helpers';
+import { LogLevel } from './helpers/types';
+
+declare global {
+  namespace NodeJS {
+    interface Global {
+      logLevel: LogLevel;
+    }
+  }
+}
 
 const PORT = process.env.PORT || 8080;
 const IMAGES_FOLDER = process.env.IMAGES_FOLDER || './images';
 const IMG_HOST = untrailingSlashIt(process.env.IMG_HOST || '');
 const MAX_SIZES = process.env.MAX_SIZE || 5000;
+global.logLevel = process.env.logLevel || 'ERROR';
 
 const handle = async ({
   request,
@@ -97,7 +107,7 @@ const handle = async ({
     });
 
     const imgUrl = IMG_HOST + urlParams.join('/');
-    console.log('imgUrl', imgUrl);
+    log('imgUrl: ' + imgUrl, logLevels.DEBUG);
     const imageRequest = await fetch(imgUrl);
     if (!imageRequest.ok) {
       return404(response, 'Image not found');
@@ -131,17 +141,20 @@ const handle = async ({
       response.end();
     });
   } catch (err) {
-    console.log(err);
+    log(err, logLevels.ERROR);
     return500(response, `Internal server error: "${err.toString()}"`);
     return;
   }
 };
 
 if (IMG_HOST === '') {
-  console.log('ERROR: image host (process.env.IMG_HOST) not specified.');
+  log(
+    'ERROR: image host (process.env.IMG_HOST) not specified.',
+    logLevels.ERROR
+  );
 } else {
   server(IMAGES_FOLDER, handle).listen(PORT, () => {
-    console.log(`Running on Port ${PORT}`);
-    console.log(`http://localhost:${PORT}/`);
+    log(`Running on Port ${PORT}`, logLevels.SYSTEM);
+    log(`http://localhost:${PORT}/`, logLevels.SYSTEM);
   });
 }

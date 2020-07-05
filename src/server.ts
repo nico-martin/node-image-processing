@@ -1,6 +1,6 @@
 import http from 'http';
 import staticServer from 'node-static';
-import { untrailingSlashIt } from './helpers';
+import { log, logLevels, untrailingSlashIt } from './helpers';
 
 export const server = (
   serveDir: string,
@@ -20,7 +20,7 @@ export const server = (
               response,
             });
           } else {
-            console.log(`Static file served: ${request.url}`);
+            log(`Static file served: ${request.url}`, logLevels.DEBUG);
           }
         });
       })
