@@ -97,7 +97,6 @@ const handle = async ({
     });
 
     const imgUrl = IMG_HOST + urlParams.join('/');
-    console.log('imgUrl', imgUrl);
     const imageRequest = await fetch(imgUrl);
     if (!imageRequest.ok) {
       return404(response, 'Image not found');
